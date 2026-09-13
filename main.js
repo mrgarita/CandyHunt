@@ -110,11 +110,11 @@ function checkCandy(){
 function draw() {
 
 	cls(COLOR_DARK_BLUE);
+	drawInfo();
 	drawCandy();
 	drawGhost();
 	drawPlayer();
 	drawScore();
-	drawInfo();
 
 }
 
@@ -200,24 +200,6 @@ function drawInfo(){
     );
 }
 
-/* ========================================
-   アセット（画像・音源）読み込み
-   ======================================== */
-
-function loadAssets(){
-	// 画像読み込み
-	assetImage.src = "candy_hunt_images.png";
-
-	assetImage.onload = function(){
-		console.log("画像アセット読み込み完了●");
-	}
-
-	assetImage.onerror = function(){
-		console.error("画像アセットの読み込みに失敗しました◆");
-	}
-
-}
-
 function initGame(){
 	// ========== ゲームをはじめからにする ==========
 	player.x = (GAME_WIDTH - PLAYER_SIZE) / 2;
@@ -245,14 +227,20 @@ function gameLoop() {
 
 
 /* ========================================
-   初期化
+   初期化（アセット読み込み後 -> ゲーム開始）
    ======================================== */
 
-loadAssets();
+// 画像読み込み
+assetImage.src = "candy_hunt_images.png";
 
-initGame();
+assetImage.onload = function(){
+	console.log("画像アセット読み込み完了●");
 
-resizeCanvas();
+	initGame();
+	resizeCanvas();
+	gameLoop();
+}
 
-gameLoop();
-
+assetImage.onerror = function(){
+	console.error("画像アセットの読み込みに失敗しました◆");
+}
