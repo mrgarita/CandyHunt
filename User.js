@@ -1,25 +1,36 @@
 "use strict";
 
-const INFO_TEXT = "フェーズ５： お化けに追いかけさせる";
+const INFO_TEXT = "フェーズ 7 タイトル画面ともう一度あそぶ";
 
 /* ========================================
-   ゲーム内部の基準サイズ
+   ゲーム定数
    ======================================== */
 
 const GAME_WIDTH = 1280;
 const GAME_HEIGHT = 960;
 
+const PLAYER_U = 0;        // プレイヤーの絵の切り出し位置
+const GHOST_U = 64;        // お化けの絵の切り出し位置
+const CANDY_U = 128;       // お菓子の絵の切り出し位置
+
 const PLAYER_SIZE = 64;
 const PLAYER_SPEED = 4;
-
-const CANDY_SIZE = 64;
 
 const GHOST_SIZE = 64;
 const GHOST_SPEED = 2;
 
-const PLAYER_U = 0;        // プレイヤーの絵の切り出し位置
-const GHOST_U = 64;        // お化けの絵の切り出し位置
-const CANDY_U = 128;       // お菓子の絵の切り出し位置
+const CANDY_SIZE = 64;
+
+const HIT_SIZE = 32;       // 当たり判定に使う四角の大きさ（絵の中央だけを見る）
+const HIT_OFFSET = (PLAYER_SIZE - HIT_SIZE) / 2;   // 絵の左上から判定の四角までの距離
+
+const SCENE_PLAY = 0;      // あそんでいる画面
+const SCENE_GAMEOVER = 1;  // ゲームオーバー画面
+const SCENE_TITLE = 2;     // タイトル画面
+
+const GAMEOVER_WAIT = 30;  // 捕まってから文字を出すまでの時間
+const BLINK_CYCLE = 30;    // 点滅 1 周期の時間(ms)
+const BLINK_ON = 20;       // そのうち文字が見えているフレーム数
 
 /* ========================================
    ゲームアセット
@@ -27,7 +38,6 @@ const CANDY_U = 128;       // お菓子の絵の切り出し位置
 
 const ASSET_PATH = "assets/";
 const ASSET_IMAGE = "candy_hunt_images.png";
-
 
 /* ========================================
    カラーパレット
@@ -68,8 +78,13 @@ let scale = 1;
 let offsetX = 0;
 let offsetY = 0;
 
-/* ===== 定数 ===== */
+/* ========================================
+   ゲーム内定数・変数
+   ======================================== */
 const assetImage = new Image();		// 画像のイメージバング
 const keys = {};					      // 押しているキーの番号
 
-let score = 0;
+let score = 0;                      // スコア
+let scene = 0;                      // 画面遷移
+let frameCount = 0;                 // フレーム数
+let gameOverFrame = 0;              // ゲームオーバー時のフレーム数

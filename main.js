@@ -46,10 +46,44 @@ const ghost = {
 
 function update() {
 
+	if(scene == SCENE_TITLE){
+		updateTitle();
+	}
+	else if(scene == SCENE_PLAY){
+		updatePlay();
+	}
+	else{
+		updateGameover();
+	}
+
+}
+
+function updateTitle(){
+	// ========== タイトル画面 Enter でゲームを始める ==========
+	if(keys["Enter"]){
+		resetGame();
+		scene = SCENE_PLAY;
+	}
+}
+
+function updatePlay(){
+	// ========== あそんでいる間の更新 ==========
 	movePlayer();
 	moveGhost();
 	checkCandy();
+	checkGhost();
+}
 
+function updateGameover(){
+	// ========== ゲームオーバー画面 少し待ってから、 Enter でもう一度始める ==========
+	if(frameCount - gameOverFrame < GAMEOVER_WAIT){
+		return;
+	}
+
+	if(keys["Enter"]){
+		resetGame();
+		scene = SCENE_PLAY;
+	}
 }
 
 function movePlayer(){
@@ -97,10 +131,21 @@ function placeCandy(){
 
 function checkCandy(){
 	// ========== お菓子に重なったら、次の場所へ置きなおす ==========
-	if(is_hit(player.x, player.y, PLAYER_SIZE, candy.x, candy.y, CANDY_SIZE)){
+	if(is_hit(player.x + HIT_OFFSET, player.y + HIT_OFFSET, HIT_SIZE,
+		candy.x + HIT_OFFSET, candy.y + HIT_OFFSET, HIT_SIZE)){
 		score ++;
 		placeCandy();
 	}
+}
+
+function checkGhost(){
+	// ========== お化けに捕まったらゲームオーバーにする ==========
+	if(is_hit(player.x + HIT_OFFSET, player.y + HIT_OFFSET, HIT_SIZE,
+				ghost.x + HIT_OFFSET, ghost.y + HIT_OFFSET, HIT_SIZE)){
+		scene = SCENE_GAMEOVER;
+		gameOverFrame = frameCount;			// 捕まった時刻を覚えておく
+	}
+
 }
 
 /* ========================================
@@ -110,12 +155,49 @@ function checkCandy(){
 function draw() {
 
 	cls(COLOR_DARK_BLUE);
+
+	if(scene == SCENE_TITLE){
+		drawTitle();
+		return;
+	}
+
+	drawPlay();
+
+	if(scene == SCENE_GAMEOVER){
+		drawGameover();
+	}
+
+}
+
+function drawTitle(){
+	// ========== タイトル画面を描く ==========
+	drawCenter("CANDY HUNT", 440, COLOR_YELLOW);
+
+	if(isBlinkOn()){
+		drawCenter("PRESS ENTER", 680, COLOR_WHITE);
+	}
+}
+
+function drawPlay(){
+	// ========== あそんでいる画面を描く ==========
 	drawInfo();
 	drawCandy();
 	drawGhost();
 	drawPlayer();
 	drawScore();
+}
 
+function drawGameover(){
+	// ========== ゲームオーバーの文字を重ねて描く ==========
+	if(frameCount - gameOverFrame < GAMEOVER_WAIT){
+		return;
+	}
+
+	if(isBlinkOn()){
+		drawCenter("GAME OVER", 440, COLOR_RED);	
+	}
+	drawCenter("SCORE " + score, 500, COLOR_WHITE);
+	drawCenter("PRESS ENTER TO RETRY", 600, COLOR_LIGHT_GRAY);
 }
 
 function cls(color){
@@ -126,87 +208,58 @@ function cls(color){
 
 function drawPlayer(){
 	// ========== プレイヤーを描画する ==========
-	if (assetImage.complete && 
-		assetImage.naturalWidth > 0){
-			ctx.drawImage(
-				assetImage,
-				PLAYER_U,
-				0,
-				PLAYER_SIZE,
-				PLAYER_SIZE,
-				player.x,
-				player.y,
-				player.width,
-				player.height
-			);
-	}
+	ctx.drawImage(
+		assetImage,
+		PLAYER_U, 0, PLAYER_SIZE, PLAYER_SIZE,
+		player.x, player.y, player.width, player.height
+	);
 }
 
 function drawGhost(){
 	// ========== お化けを描画する ==========
-	if (assetImage.complete && 
-		assetImage.naturalWidth > 0){
-			ctx.drawImage(
-				assetImage,
-				GHOST_U,
-				0,
-				GHOST_SIZE,
-				GHOST_SIZE,
-				ghost.x,
-				ghost.y,
-				ghost.width,
-				ghost.height
-			);
-	}
+	ctx.drawImage(
+		assetImage,
+		GHOST_U, 0, GHOST_SIZE, GHOST_SIZE,
+		ghost.x, ghost.y, ghost.width, ghost.height
+	);
 }
 
 function drawCandy(){
 	// ========== お菓子を描画する ==========
-	if (assetImage.complete && 
-		assetImage.naturalWidth > 0){
-			ctx.drawImage(
-				assetImage,
-				CANDY_U,
-				0,
-				CANDY_SIZE,
-				CANDY_SIZE,
-				candy.x,
-				candy.y,
-				candy.width,
-				candy.height
-			);
-	}
+	ctx.drawImage(
+		assetImage,
+		CANDY_U, 0, CANDY_SIZE, CANDY_SIZE,
+		candy.x, candy.y, candy.width, candy.height
+	);
 }
 
 function drawScore(){
 	// ========== スコアを描画する ==========
 	ctx.fillStyle = COLOR_WHITE;
 	ctx.fillText(
-		"SCORE: "
-		+ score,
-		32,
-		32
+		"SCORE: " + score, 32, 32
 	)
 }
 
 function drawInfo(){
-	// ========== 画面にゲーム情報を表示（一時的） ==========
-	ctx.fillStyle = COLOR_YELLOW;
-
-	ctx.fillText(
-        INFO_TEXT,
-        700,
-        32
-    );
+	// ========== 画面に制作の進捗フェーズを表示（一時的） ==========
+	drawCenter(INFO_TEXT, 32, COLOR_YELLOW);
 }
 
 function initGame(){
+	// ========== 起動時の設定 ==========
+	scene = SCENE_TITLE;
+	resetGame();
+}
+
+function resetGame(){
 	// ========== ゲームをはじめからにする ==========
 	player.x = (GAME_WIDTH - PLAYER_SIZE) / 2;
 	player.y = (GAME_HEIGHT - PLAYER_SIZE) / 2;
 	ghost.x = 0;
 	ghost.y = 0;
 	score = 0;
+	frameCount = 0;
 	placeCandy();		// お菓子を置く
 }
 
@@ -219,6 +272,8 @@ function gameLoop() {
     update();
 
     draw();
+
+	frameCount++;
 
     requestAnimationFrame(
         gameLoop

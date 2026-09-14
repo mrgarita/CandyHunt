@@ -75,6 +75,7 @@ window.addEventListener(
 	"keydown",
 	function(event){
 		keys[event.code] = true;
+        console.log(event.code);
 		// 矢印キーのページスクロール抑制
 		if(
 			event.code === "ArrowLeft" ||

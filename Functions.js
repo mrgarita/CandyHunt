@@ -157,3 +157,23 @@ function is_hit(x1, y1, size1, x2, y2, size2){
 	return (x1 < x2 + size2) && (x2 < x1 + size1) &&
 			(y1 < y2 + size2) && (y2 < y1 + size1)
 }
+
+/* ========================================
+   文字列を画面の中央に描く
+   ======================================== */
+function drawCenter(s, y, color){
+    let textWidth = ctx.measureText(s).width;
+    let x = (GAME_WIDTH - textWidth) / 2;
+    ctx.fillStyle = color;
+	ctx.fillText(
+        s, x, y
+    );
+
+}
+
+/* ========================================
+   点滅の「見えている」タイミングなら true を返す
+   ======================================== */
+function isBlinkOn(){
+    return frameCount % BLINK_CYCLE < BLINK_ON;
+}
